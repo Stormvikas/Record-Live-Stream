@@ -16,9 +16,23 @@ jobs:
           sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
           sudo chmod a+rx /usr/local/bin/yt-dlp
 
-      - name: Record Stream from Playlist
+      - name: Wait for and Record Stream
         run: |
-          yt-dlp --live-from-start --match-filter "is_live" "https://youtube.com/playlist?list=PLUHokAA_R9EA" -o "MMOC_Stream_%(upload_date)s.%(ext)s"
+          echo "Checking playlist for an active live stream..."
+          for i in {1..60}; do
+            LIVE_ID=$(yt-dlp --print id --match-filter "is_live" "https://youtube.com/playlist?list=PLUHokAA_R9EA" 2>/dev/null | head -n 1 || true)
+            
+            if [ -n "$LIVE_ID" ]; then
+              echo "Stream is LIVE! (ID: $LIVE_ID). Starting recording..."
+              yt-dlp --live-from-start "https://www.youtube.com/watch?v=$LIVE_ID" -o "MMOC_Stream.%(ext)s"
+              exit 0
+            fi
+            
+            echo "Nothing is live right now. Checking again in 60 seconds... (Attempt $i/60)"
+            sleep 60
+          done
+          echo "No stream went live within 60 minutes."
+          exit 1
 
       - name: Upload Video for Download
         uses: actions/upload-artifact@v4
