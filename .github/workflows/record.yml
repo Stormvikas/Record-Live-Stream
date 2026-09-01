@@ -1,0 +1,28 @@
+name: Record Live Stream
+
+on:
+  schedule:
+    - cron: '50 16 * * *'
+  workflow_dispatch:
+
+jobs:
+  record-stream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install yt-dlp and ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+          sudo chmod a+rx /usr/local/bin/yt-dlp
+
+      - name: Record Stream from Playlist
+        run: |
+          yt-dlp --live-from-start --match-filter "is_live" "https://youtube.com/playlist?list=PLUHokAA_R9EA" -o "MMOC_Stream_%(upload_date)s.%(ext)s"
+
+      - name: Upload Video for Download
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: recorded-session
+          path: MMOC_Stream*.*
