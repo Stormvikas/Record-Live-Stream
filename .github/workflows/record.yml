@@ -42,4 +42,3 @@ jobs:
         with:
           name: recorded-session
           path: MMOC_Stream*.*
-
