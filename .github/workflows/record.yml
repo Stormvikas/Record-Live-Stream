@@ -24,8 +24,6 @@ jobs:
             
             if [ -n "$LIVE_ID" ]; then
               echo "Stream is LIVE! (ID: $LIVE_ID). Starting recording..."
-              # ADDED: -S "res:1080" to prevent 4K streams from exhausting GitHub's 14GB disk limit.
-              # ADDED: || true so the script doesn't abort if yt-dlp exits with an error when the stream naturally ends.
               yt-dlp --live-from-start -S "res:1080" "https://www.youtube.com/watch?v=$LIVE_ID" -o "MMOC_Stream.%(ext)s" || true
               exit 0
             fi
