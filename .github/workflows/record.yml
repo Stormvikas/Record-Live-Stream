@@ -1,4 +1,4 @@
-Name: Record Live Stream
+name: Record Live Stream
 
 on:
   schedule:
