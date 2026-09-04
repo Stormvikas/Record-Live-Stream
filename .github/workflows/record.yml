@@ -19,7 +19,7 @@ jobs:
       - name: Wait for and Record Stream
         run: |
           # Store your specific YouTube link in a variable
-          TARGET_URL="https://https://www.youtube.com/live/Sf-Ux8k9xTc?si=4bzS_ZookefJdpKr"
+          TARGET_URL="https://www.youtube.com/live/aNMPMfLfPFU?si=adEU6CoClBDhcOgU"
           
           echo "Checking specific URL for an active live stream..."
           
