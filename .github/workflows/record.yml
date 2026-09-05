@@ -2,7 +2,8 @@ name: Record Live Stream
 
 on:
   schedule:
-    - cron: '50 16 * * *'
+    # 16:55 UTC is exactly 12:55 PM Eastern Time (5 minutes before the 1:00 PM broadcast)
+    - cron: '55 16 * * *'
   workflow_dispatch:
 
 jobs:
@@ -18,31 +19,33 @@ jobs:
 
       - name: Wait for and Record Stream
         run: |
-          # Store your specific YouTube link in a variable
-          TARGET_URL="https://www.youtube.com/live/aNMPMfLfPFU?si=adEU6CoClBDhcOgU"
+          echo "Checking playlist for an active live stream..."
           
-          echo "Checking specific URL for an active live stream..."
-          
+          # Will check every 60 seconds for up to an hour, just in case the host is late
           for i in {1..60}; do
-            # Check if this specific video is currently live
-            LIVE_ID=$(yt-dlp --print id --match-filter "is_live" "$TARGET_URL" 2>/dev/null || true)
+            LIVE_ID=$(yt-dlp --print id --match-filter "is_live" "https://youtube.com/playlist?list=PLUHokAA_R9EA" 2>/dev/null | head -n 1 || true)
             
             if [ -n "$LIVE_ID" ]; then
-              echo "Stream is LIVE! (ID: $LIVE_ID). Starting recording..."
-              # Record at max 1080p to save GitHub disk space, and allow graceful exit if stream drops
-              yt-dlp --live-from-start -S "res:1080" "$TARGET_URL" -o "MMOC_Stream.%(ext)s" || true
+              echo "Stream is LIVE! (ID: $LIVE_ID). Starting recording in 1080p..."
+              
+              # -S "res:1080" forces maximum 1080p resolution.
+              # || true prevents GitHub from crashing when the live stream naturally ends.
+              yt-dlp --live-from-start -S "res:1080" "https://www.youtube.com/watch?v=$LIVE_ID" -o "MMOC_Stream.%(ext)s" || true
+              
+              echo "Recording finished successfully."
               exit 0
             fi
             
             echo "Stream is not live yet. Checking again in 60 seconds... (Attempt $i/60)"
             sleep 60
           done
-          echo "Stream did not go live within 60 minutes."
+          
+          echo "No stream went live within 60 minutes."
           exit 1
 
       - name: Upload Video for Download
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() # Guarantees the video uploads even if there's a hiccup
         with:
           name: recorded-session
           path: MMOC_Stream*.*
